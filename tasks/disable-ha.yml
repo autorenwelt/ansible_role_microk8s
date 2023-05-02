@@ -1,0 +1,22 @@
+- name: get current addons state
+  become: yes
+  command:
+    cmd: microk8s.status --format yaml
+  changed_when: no
+  register: microk8s_status_ha
+  check_mode: no
+
+- name: set current state fact
+  set_fact:
+    microk8s_status_ha: "{{ microk8s_status_ha.stdout | from_yaml }}"
+
+- name: disable ha-cluster addon to switch the whole cluster to flannel networking
+  become: yes
+  loop: "{{ microk8s_status_ha.addons }}"
+  loop_control:
+    label: "{{ item.name }}"
+  command:
+    cmd: microk8s.disable {{ item.name }} --force
+  when:
+    - item.status == 'enabled'
+    - item.name == 'ha-cluster'
