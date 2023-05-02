@@ -1,6 +1,10 @@
 ---
 - import_tasks: install.yml
 
+- name: configure flannel instead of calico by disabling addon ha-cluster
+  include_tasks: disable-ha.yml
+  when: not microk8s_enable_HA
+
 - name: configure users
   include_tasks: configure-groups.yml
   when: "users is defined and users not in ([], None, '', omit)"
